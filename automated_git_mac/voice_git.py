@@ -57,7 +57,10 @@ repo_name = input(
 )
 if not repo_name.strip():
     repo_name = get_default_repo_name()
+    talk(f"No name entered. Repository name will be saved as {repo_name} by default.")
     print(f"No name entered. Using current folder name as repo name: {repo_name}")
+else:
+    talk(f"Repository name will be saved as {repo_name}.")
 
 def writefun():
     talk("Saving repository name to myRepos.txt.")
@@ -81,11 +84,11 @@ def current_dir():
     return os.getcwd()
 
 def creating_md():
-    talk("Creating README file for you.")
+    talk("Please Wait. Creating README file for you.")
     print("Creating README File for you!")
     print(emoji.emojize("\nPlease Wait...:slightly_smiling_face:"))
     os.system(f"echo '# {repo_name}'>README.md")
-    talk("Created README.md successfully for you.")
+    talk("Created README.md successfully for you! Smiling face with halo.")
     print(
         emoji.emojize(
             "\nCreated README.md successfully for you!:smiling_face_with_halo:"
@@ -114,9 +117,8 @@ def git_status():
     os.system("git status")
 
 def git_commit():
-    talk("Ready to commit your changes.")
+    talk("How would you like to remember this commit?")
     print(emoji.emojize("Ready To Commit Your MESS...?:expressionless_face:"))
-    talk("Please enter your commit message")
     commit_msg = input(
         emoji.emojize(
             "Please enter your commit message here:drooling_face:\n message:")
@@ -166,7 +168,12 @@ def git_push():
         os.system(f"git remote set-url origin {remote_url}")
         if create_result == 0:
             print("Repository created and pushed to GitHub.")
-            talk("Repository created and pushed to GitHub successfully.")
+            talk("Repository created and pushed to GitHub successfully. Re-running git add, commit, and push to ensure all changes are uploaded.")
+            # Re-run add, commit, and push to ensure everything is pushed
+            os.system("git add .")
+            os.system(f'git commit -m "Auto-commit after repo creation"')
+            os.system(push_cmd)
+            talk("All changes have been pushed to GitHub.")
         else:
             print("Failed to create repository on GitHub. Please check your GitHub CLI authentication and try again.")
             talk("Failed to create repository on GitHub. Please check your GitHub CLI authentication and try again.")
