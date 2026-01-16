@@ -7,24 +7,35 @@ import pyttsx3
 # &Create Object and Set voice
 engine = pyttsx3.init()
 voices = engine.getProperty('voices')  # getting details of current voice
-# Set to a beautiful English female voice if available
-female_voice = None
+# Set to a British female English voice if available
+british_female_voice = None
 for v in voices:
-    # Try to match English female voices
-    if (hasattr(v, 'gender') and 'female' in v.gender.lower()) or ('female' in v.name.lower()):
-        if 'english' in v.name.lower() or 'en_' in v.id.lower():
-            female_voice = v
+    if (
+        ((hasattr(v, 'gender') and 'female' in v.gender.lower()) or ('female' in v.name.lower()))
+        and (
+            'british' in v.name.lower() or 'uk' in v.name.lower() or 'en-gb' in v.id.lower() or 'en_uk' in v.id.lower()
+        )
+    ):
+        british_female_voice = v
+        break
+if not british_female_voice:
+    # Fallback: any English female voice
+    for v in voices:
+        if (
+            ((hasattr(v, 'gender') and 'female' in v.gender.lower()) or ('female' in v.name.lower()))
+            and ('english' in v.name.lower() or 'en_' in v.id.lower())
+        ):
+            british_female_voice = v
             break
-if not female_voice:
+if not british_female_voice:
     # Fallback: any female voice
     for v in voices:
         if (hasattr(v, 'gender') and 'female' in v.gender.lower()) or ('female' in v.name.lower()):
-            female_voice = v
+            british_female_voice = v
             break
-if female_voice:
-    engine.setProperty('voice', female_voice.id)
+if british_female_voice:
+    engine.setProperty('voice', british_female_voice.id)
 else:
-    # Fallback to first available voice
     engine.setProperty('voice', voices[0].id)
 
 all_repos = []
@@ -65,9 +76,11 @@ def current_dir():
     return os.getcwd()
 
 def creating_md():
+    talk("Creating README file for you.")
     print("Creating README File for you!")
     print(emoji.emojize("\nPlease Wait...:slightly_smiling_face:"))
     os.system(f"echo '# {repo_name}'>README.md")
+    talk("Created README.md successfully for you.")
     print(
         emoji.emojize(
             "\nCreated README.md successfully for you!:smiling_face_with_halo:"
@@ -75,26 +88,28 @@ def creating_md():
     )
 
 def git_init():
-    talk("Initializing your repository")
+    talk("Initializing your git repository.")
     print(
         emoji.emojize(
             "\nInitializing your repository...:smiling_face_with_smiling_eyes:"
         )
     )
     os.system("git init")
+    talk("Git repository initialized.")
 
 def git_add():
-    talk("Adding files to commit")
+    talk("Adding files to commit.")
     print(emoji.emojize("\n Initializing Git Add Command for you...:smiling_face:"))
     os.system("git add .")
+    talk("Files added to commit.")
 
 def git_status():
-    talk("These files are added")
+    talk("Checking git status.")
     print(emoji.emojize("Here's the status of this REPO...:face_savoring_food:"))
     os.system("git status")
 
 def git_commit():
-    talk("Ready To Commit")
+    talk("Ready to commit your changes.")
     print(emoji.emojize("Ready To Commit Your MESS...?:expressionless_face:"))
     talk("Please enter your commit message")
     commit_msg = input(
@@ -104,13 +119,17 @@ def git_commit():
     if not commit_msg.strip():
         commit_msg = "Auto-commit from auto_git"
     commit = f'git commit -m "{commit_msg}"'
-    os.system(commit)
+    result = os.system(commit)
+    if result == 0:
+        talk("Commit successful.")
+    else:
+        talk("Commit failed. Please check for errors.")
 
 user_repo_link = "https://github.com/99ashr/"
 remote = "git remote add origin"
 
 def connect_remote():
-    talk("Connecting to your remote directory")
+    talk("Connecting to your remote GitHub repository.")
     print(emoji.emojize("Connecting to your remote directory...:lying_face:"))
     # Check if remote 'origin' exists
     remote_url = f"{user_repo_link}{repo_name}.git"
@@ -119,9 +138,10 @@ def connect_remote():
         os.system(f"git remote add origin {remote_url}")
     else:
         os.system(f"git remote set-url origin {remote_url}")
+    talk("Remote repository set.")
 
 def git_push():
-    talk("We're good to go.")
+    talk("Pushing your changes to GitHub.")
     import subprocess
     try:
         branch = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]).decode().strip()
@@ -132,13 +152,21 @@ def git_push():
     # If push fails due to missing remote repo, try to create it using GitHub CLI and push again
     if result != 0:
         print("Push failed. Attempting to create the repository on GitHub using GitHub CLI...")
+        talk("Push failed. Attempting to create the repository on GitHub.")
         # Try to create the repo (public by default)
-        create_cmd = f"gh repo create {repo_name} --public --source=. --remote=origin --push --confirm"
+        create_cmd = f"gh repo create {repo_name} --public --source=. --push"
         create_result = os.system(create_cmd)
+        # Always set the remote URL to origin after creation
+        remote_url = f"https://github.com/99ashr/{repo_name}.git"
+        os.system(f"git remote set-url origin {remote_url}")
         if create_result == 0:
             print("Repository created and pushed to GitHub.")
+            talk("Repository created and pushed to GitHub successfully.")
         else:
             print("Failed to create repository on GitHub. Please check your GitHub CLI authentication and try again.")
+            talk("Failed to create repository on GitHub. Please check your GitHub CLI authentication and try again.")
+    else:
+        talk("Push to GitHub successful.")
 
 if __name__ == "__main__":
     current_dir()
