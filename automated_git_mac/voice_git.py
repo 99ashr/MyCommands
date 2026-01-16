@@ -60,19 +60,24 @@ if not repo_name.strip():
     print(f"No name entered. Using current folder name as repo name: {repo_name}")
 
 def writefun():
+    talk("Saving repository name to myRepos.txt.")
     with open("myRepos.txt", "ab") as filehandle:
         pickle.dump(repo_name, filehandle)
+    talk("Repository name saved.")
 
 def readfun():
+    talk("Reading last saved repository name from myRepos.txt.")
     with open("myRepos.txt", "rb") as filehandle:
         try:
             while True:
                 all_repos.append(pickle.load(filehandle))
         except EOFError:
             pass
+        talk(f"Last saved repository name is {all_repos[-1]}")
         return all_repos[-1]
 
 def current_dir():
+    talk("Getting current working directory.")
     return os.getcwd()
 
 def creating_md():
@@ -169,12 +174,13 @@ def git_push():
         talk("Push to GitHub successful.")
 
 if __name__ == "__main__":
+    talk("Starting the auto git workflow.")
     current_dir()
     if repo_name == "":
         try:
             repo_name = readfun()
         except FileNotFoundError:
-            talk("oops something is wrong")
+            talk("Oops, something is wrong. Please enter the name manually.")
             print("please enter the name manually!")
     else:
         writefun()
@@ -186,4 +192,5 @@ if __name__ == "__main__":
     git_status()
     connect_remote()
     git_push()
+    talk("Auto git workflow complete.")
     engine.stop()
