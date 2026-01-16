@@ -18,11 +18,20 @@ def talk(talk):
     engine.say(talk)
     engine.runAndWait()
 
+
+# Default repo name to current folder if left blank
+import os
+def get_default_repo_name():
+    return os.path.basename(os.getcwd())
+
 talk("Please enter the name of your repository")
 repo_name = input(
     emoji.emojize(
         "Enter the name of your repository here!:pensive_face:\nHere!:\t")
 )
+if not repo_name.strip():
+    repo_name = get_default_repo_name()
+    print(f"No name entered. Using current folder name as repo name: {repo_name}")
 
 def writefun():
     with open("myRepos.txt", "ab") as filehandle:
@@ -77,7 +86,8 @@ def git_commit():
         emoji.emojize(
             "Please enter your commit message here:drooling_face:\n message:")
     )
-    # On macOS, wrap commit message in quotes to avoid issues
+    if not commit_msg.strip():
+        commit_msg = "Auto-commit from auto_git"
     commit = f'git commit -m "{commit_msg}"'
     os.system(commit)
 
@@ -87,11 +97,23 @@ remote = "git remote add origin"
 def connect_remote():
     talk("Connecting to your remote directory")
     print(emoji.emojize("Connecting to your remote directory...:lying_face:"))
-    os.system(f"{remote} {user_repo_link}{repo_name}.git")
+    # Check if remote 'origin' exists
+    remote_url = f"{user_repo_link}{repo_name}.git"
+    remote_check = os.system("git remote get-url origin > /dev/null 2>&1")
+    if remote_check != 0:
+        os.system(f"git remote add origin {remote_url}")
+    else:
+        os.system(f"git remote set-url origin {remote_url}")
 
 def git_push():
     talk("We're good to go.")
-    os.system("git push -u origin master")
+    # Get current branch name
+    import subprocess
+    try:
+        branch = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]).decode().strip()
+    except Exception:
+        branch = "main"
+    os.system(f"git push -u origin {branch}")
 
 if __name__ == "__main__":
     current_dir()
