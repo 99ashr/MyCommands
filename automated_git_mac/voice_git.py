@@ -3,13 +3,28 @@ import emoji
 import pickle
 import pyttsx3
 
+
 # &Create Object and Set voice
 engine = pyttsx3.init()
 voices = engine.getProperty('voices')  # getting details of current voice
-# On macOS, voice index 1 may not be female; fallback to index 0 if out of range
-try:
-    engine.setProperty('voice', voices[1].id)
-except IndexError:
+# Set to a beautiful English female voice if available
+female_voice = None
+for v in voices:
+    # Try to match English female voices
+    if (hasattr(v, 'gender') and 'female' in v.gender.lower()) or ('female' in v.name.lower()):
+        if 'english' in v.name.lower() or 'en_' in v.id.lower():
+            female_voice = v
+            break
+if not female_voice:
+    # Fallback: any female voice
+    for v in voices:
+        if (hasattr(v, 'gender') and 'female' in v.gender.lower()) or ('female' in v.name.lower()):
+            female_voice = v
+            break
+if female_voice:
+    engine.setProperty('voice', female_voice.id)
+else:
+    # Fallback to first available voice
     engine.setProperty('voice', voices[0].id)
 
 all_repos = []
@@ -107,13 +122,23 @@ def connect_remote():
 
 def git_push():
     talk("We're good to go.")
-    # Get current branch name
     import subprocess
     try:
         branch = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]).decode().strip()
     except Exception:
         branch = "main"
-    os.system(f"git push -u origin {branch}")
+    push_cmd = f"git push -u origin {branch}"
+    result = os.system(push_cmd)
+    # If push fails due to missing remote repo, try to create it using GitHub CLI and push again
+    if result != 0:
+        print("Push failed. Attempting to create the repository on GitHub using GitHub CLI...")
+        # Try to create the repo (public by default)
+        create_cmd = f"gh repo create {repo_name} --public --source=. --remote=origin --push --confirm"
+        create_result = os.system(create_cmd)
+        if create_result == 0:
+            print("Repository created and pushed to GitHub.")
+        else:
+            print("Failed to create repository on GitHub. Please check your GitHub CLI authentication and try again.")
 
 if __name__ == "__main__":
     current_dir()
