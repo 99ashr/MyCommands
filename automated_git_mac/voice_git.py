@@ -49,6 +49,8 @@ def github_repo_exists(repo_name):
 
 def get_and_announce_repo_name():
     talk("Please enter the name of your repository.")
+    # Wait for voice to finish before showing input
+    speech_queue.join()
     repo_name = input(emoji.emojize("Enter the name of your repository here!:pensive_face:\nHere!:\t"))
     if not repo_name.strip():
         repo_name = os.path.basename(os.getcwd())
@@ -93,18 +95,20 @@ def git_commit():
     # Check if there's anything to commit first
     status_result = subprocess.run("git status --porcelain", shell=True, capture_output=True, text=True)
     if not status_result.stdout.strip():
-        talk("Nothing to commit. Working tree is clean.")
+        talk("Nothing new to commit. Your working tree is already clean and all changes have been committed previously.")
         return
     talk("How would you like to remember this commit?")
+    # Wait for voice to finish before showing input
+    speech_queue.join()
     print(emoji.emojize("Ready To Commit Your MESS...?:expressionless_face:"))
     commit_msg = input(emoji.emojize("Please enter your commit message here:drooling_face:\n message:"))
     if not commit_msg.strip():
         commit_msg = "Auto-commit from auto_git"
-    talk("It might take some time, we are commiting your files.")
+    talk("It might take some time, we are committing your files.")
     commit = f'git commit -m "{commit_msg}"'
     result = os.system(commit)
     if result == 0:
-        talk("Commit successful.")
+        talk("Commit successful. Your changes have been saved.")
     else:
         talk("Commit failed. Please check for errors.")
 
@@ -191,3 +195,6 @@ if __name__ == "__main__":
     except Exception as e:
         talk("oh oo! an error occurred")
         print(f"Error: {e}")
+    finally:
+        # Wait for all voice messages to finish before exiting
+        speech_queue.join()
